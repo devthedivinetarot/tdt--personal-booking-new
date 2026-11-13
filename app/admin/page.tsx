@@ -12,12 +12,11 @@ import Reports from "./Reports";
 import Feedback from "./Feedback";
 import Activity from "./Activity";
 import Account from "./Account";
-import AppControl from "./AppControl";
 import { buildCustomers } from "./customers";
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-type Tab = "dash" | "book" | "cal" | "cust" | "pay" | "report" | "feedback" | "slots" | "price" | "app" | "tools" | "activity" | "account";
-const TABS: Tab[] = ["dash", "book", "cal", "cust", "pay", "report", "feedback", "slots", "price", "app", "tools", "activity", "account"];
+type Tab = "dash" | "book" | "cal" | "cust" | "pay" | "report" | "feedback" | "slots" | "price" | "tools" | "activity" | "account";
+const TABS: Tab[] = ["dash", "book", "cal", "cust", "pay", "report", "feedback", "slots", "price", "tools", "activity", "account"];
 
 export default function Admin() {
   const [token, setToken] = useState(""), [cfg, setCfg] = useState<Cfg | null>(null), [rows, setRows] = useState<any[]>([]), [orders, setOrders] = useState<any[]>([]), [tab, setTab] = useState<Tab>("dash"), [msg, setMsg] = useState(""), [openId, setOpenId] = useState(""), [missing, setMissing] = useState<string[]>([]), [note, setNote] = useState("");
@@ -143,12 +142,11 @@ export default function Admin() {
     ["feedback", "⭐", "Feedback", 0],
     ["slots", "🕒", "Slots", 0],
     ["price", "🏷️", "Prices & Offers", 0],
-    ["app", "📱", "App Control", 0],
     ["tools", "🛠️", "Tools", 0],
     ["activity", "🕘", "Activity", 0],
     ["account", "👤", "Account", 0],
   ] as const;
-  const TITLE = { dash: "Dashboard", book: "Bookings", cal: "Calendar", cust: "Customers", report: "Revenue Report", feedback: "Customer Feedback", activity: "Activity Log", account: "Account & Notifications", pay: "Payments", slots: "Slot Settings", price: "Prices & Offers", app: "App Control — app & website", tools: "Tools" } as const;
+  const TITLE = { dash: "Dashboard", book: "Bookings", cal: "Calendar", cust: "Customers", report: "Revenue Report", feedback: "Customer Feedback", activity: "Activity Log", account: "Account & Notifications", pay: "Payments", slots: "Slot Settings", price: "Prices & Offers", tools: "Tools" } as const;
   return (
     <div className="wpa">
       <div className="wpa-bar">
@@ -179,8 +177,6 @@ export default function Admin() {
         {tab === "report" && <Reports api={api} />}
 
         {tab === "feedback" && <Feedback api={api} onNote={setNote} />}
-
-        {tab === "app" && <AppControl api={api} onNote={setNote} />}
 
         {tab === "activity" && <Activity api={api} />}
 
