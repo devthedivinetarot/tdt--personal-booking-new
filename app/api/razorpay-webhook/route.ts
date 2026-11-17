@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 import { markPaid, realEmail } from "@/lib/payments";
+import { markCoursePaid } from "@/lib/courseOrders";
 export const runtime = "nodejs"; export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
@@ -17,6 +18,11 @@ export async function POST(req: Request) {
   // Needs the "order.paid" event ticked on this webhook in the Razorpay Dashboard.
   if (ev.event === "order.paid") {
     const order = ev.payload?.order?.entity, pay = ev.payload?.payment?.entity;
+    // Courses bought in the app (receipt = course order ID): see lib/courseOrders.ts
+    if (order?.notes?.source === "tdt-app-course" && order.receipt && pay?.status === "captured") {
+      await markCoursePaid(String(order.receipt), order.id, pay.id, pay.email || "", pay.contact || "", pay.created_at ? Number(pay.created_at) * 1000 : Date.now());
+      return NextResponse.json({ ok: true });
+    }
     if (order?.notes?.source !== "tdt-app-booking" || !order.receipt || pay?.status !== "captured") return NextResponse.json({ ok: true });
     await markPaid(String(order.receipt), order.id, pay.id, pay.email || "", pay.contact || "", pay.created_at ? Number(pay.created_at) * 1000 : Date.now());
     return NextResponse.json({ ok: true });
