@@ -5,6 +5,7 @@ import { bidFrom } from "@/lib/session";
 import { editUntil, rawFromAnswers } from "@/lib/formEdit";
 import { getForm } from "@/lib/formConfig";
 import { kindOf } from "@/lib/formSchema";
+import { placeOf } from "@/lib/slots";
 export const runtime = "nodejs"; export const dynamic = "force-dynamic";
 
 // Polled by /form (and the landing page banner) and by the mobile app. The booking comes ONLY from the signed
@@ -33,6 +34,8 @@ export async function GET(req: Request) {
     }
   }
   return NextResponse.json({ bid, tier: d.tier || "standard", status: d.status, formDone: done, email: d.email || "", phone: d.phone || "", date, time, meetLink, edit, deliverBy: d.deliverBy || null, lang: d.lang || null,
+    // face-to-face meeting: where it happens (no Google Meet link)
+    place: placeOf(d.tier) || null,
     // form layout from admin → Form Builder (only needed once the form can be filled)
     form: d.status === "paid" ? await getForm(kindOf(d.tier)).catch(() => null) : null });
 }
