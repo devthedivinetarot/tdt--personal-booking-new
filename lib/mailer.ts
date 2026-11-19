@@ -318,30 +318,3 @@ export async function sendOwnerUrgentPaid(o: { bid: string; tier?: string; amoun
       <p>${isWrittenTier(o.tier) ? "Customer form bharte hi aapko sawalon wali email aayegi — jawab <b>48 ghante ke andar</b> bhejne hain." : "Customer form bharte hi slot confirm hoga (48 ghante ke andar)."}</p></div>`,
   }, { kind: "owner", bid: o.bid });
 }
-
-/** Course bought in the app: welcome mail (the course login follows within 2 days, as on learn.thedivinetarotonline.com). */
-export async function sendCourseWelcome(b: { email: string; name?: string; title: string; cid: string; until?: number }) {
-  const till = b.until ? new Date(b.until).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "long", year: "numeric" }) : "";
-  await send({
-    from: from(), to: b.email, subject: `Welcome to ${b.title} - The Divine Tarot`,
-    html: `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#1b1330">
-      <h2 style="color:#6d28d9">Namaste${b.name ? " " + esc(b.name) : ""}</h2>
-      <p>Aapka payment receive ho gaya hai — <b>${esc(b.title)}</b> mein aapka swagat hai!</p>
-      <p><b>Agla step:</b> 2 din ke andar aapko isi email par course ka link, login ID aur password bheja jayega.${till ? ` Course videos <b>${till}</b> tak dekh sakte hain.` : ""} Course poora hone par certificate email par aayega.</p>
-      <p style="background:#fff4e5;padding:12px 16px;border-radius:6px;font-size:14px">Order ID: <b>${b.cid}</b> — koi sawaal ho toh is ID ke saath reply karein ya app mein Help &amp; support se ticket bhejein.</p></div>`,
-  });
-}
-
-/** Owner notice for a course bought in the app (who to enrol). */
-export async function sendCourseOwner(o: { cid: string; title: string; amount: number; email: string; name?: string; phone?: string; paymentId: string }) {
-  const to = (process.env.OWNER_EMAIL || process.env.SMTP_USER || "").split(",").map((x) => x.trim()).filter(Boolean);
-  if (!to.length) return;
-  await send({
-    from: from(), to, subject: `🎓 New course enrolment (app): ${o.title} - ${o.name || o.email}`,
-    html: `<div style="font-family:Arial,sans-serif;font-size:14px;color:#1b1330">
-      <p><b>${esc(o.title)}</b> — ₹${Number(o.amount).toLocaleString("en-IN")} paid in the app.</p>
-      <table cellpadding="4"><tr><td>Name</td><td>${esc(o.name || "—")}</td></tr><tr><td>Email</td><td>${esc(o.email)}</td></tr><tr><td>WhatsApp</td><td>${esc(o.phone || "—")}</td></tr>
-      <tr><td>Order</td><td>${o.cid}</td></tr><tr><td>Payment</td><td>${esc(o.paymentId)}</td></tr></table>
-      <p>Please send the course login within 2 days. All app course orders: /admin → App Control.</p></div>`,
-  });
-}
