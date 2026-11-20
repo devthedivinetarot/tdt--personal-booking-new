@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getAppConfig } from "@/lib/appConfig";
 import { newCid, rz, sealCid } from "@/lib/courseOrders";
+import { allow, clientIp } from "@/lib/rateLimit";
 export const runtime = "nodejs"; export const dynamic = "force-dynamic";
 
 // Mobile app — buy a course: the price comes from /admin → App Control (never from the app). Returns a Razorpay
@@ -16,6 +17,10 @@ export async function POST(req: Request) {
   if (!name) return NextResponse.json({ error: "Apna naam likhein.", code: "name" }, { status: 400 });
   if (phone.replace(/\D/g, "").length < 10) return NextResponse.json({ error: "Sahi WhatsApp number likhein.", code: "phone" }, { status: 400 });
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) return NextResponse.json({ error: "Payment abhi available nahi hai." }, { status: 503 });
+  // Each call opens a Razorpay order and a Firestore document: cap it (10 per hour from one network, 5 per hour per email)
+  const slow = NextResponse.json({ error: "Bahut zyada koshish ho gayi. Thodi der baad dobara try karein.", code: "rate_limited" }, { status: 429 });
+  if (!(await allow("course-order-ip", clientIp(req), 10, 3600_000))) return slow;
+  if (!(await allow("course-order-email", email, 5, 3600_000))) return slow;
 
   const cid = newCid(), ref = db.doc(`courseOrders/${cid}`);
   await ref.set({ cid, status: "created", courseId: c.id, title: c.title, amount: c.price, days: c.days, email, name, phone, origin: "app", createdAt: Date.now() });
